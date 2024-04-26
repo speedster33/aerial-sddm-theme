@@ -49,6 +49,13 @@ Rectangle {
         fillMode: Image.PreserveAspectCrop
     }
 
+    // Set Animated GIF Background Image
+    AnimatedImage {
+        id: animatedGIF1
+        anchors.fill: parent
+        fillMode: AnimatedImage.PreserveAspectCrop
+    }
+
     // Set Background Video1
     MediaPlayer {
         id: mediaplayer1
@@ -102,7 +109,6 @@ Rectangle {
         autoPlay: true; muted: true
         playlist: Playlist {
             id: playlist2; playbackMode: Playlist.Random
-            //onLoaded: { mediaplayer2.play() }
         }
     }
 
@@ -198,19 +204,40 @@ Rectangle {
         anchors.fill: parent
         color: "transparent"
 
-        Clock {
+        Column {
             id: clock
+            property date dateTime: new Date()
+            property color color: "white"
             y: parent.height * config.relativePositionY - clock.height / 2
             x: parent.width * config.relativePositionX - clock.width / 2
-            color: "white"
-            timeFont.family: textFont.name
-            dateFont.family: textFont.name
+
+            Timer {
+                interval: 100; running: true; repeat: true;
+                onTriggered: clock.dateTime = new Date()
+            }
+
+            Text {
+                id: time
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: clock.color
+                text : Qt.formatTime(clock.dateTime, config.timeFormat || "hh:mm")
+                font.pointSize: 72
+                font.family: textFont.name
+            }
+
+            Text {
+                id: date
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: clock.color
+                text : Qt.formatDate(clock.dateTime, Qt.DefaultLocaleLongDate)
+                font.family: textFont.name
+                font.pointSize: 24
+            }
         }
+
 
         Rectangle {
             id: login_container
-
-            //y: parent.height * 0.8
             y: clock.y + clock.height + 30
             width: clock.width
             height: parent.height * 0.08
@@ -457,7 +484,6 @@ Rectangle {
                         text: modelItem ? modelItem.modelData.shortName : "zz"
                         font.family: textFont.name
                         font.pixelSize: 14
-                        //color: "white"
                         color: "#505050"
                     }
                 }
@@ -510,11 +536,29 @@ Rectangle {
         if ( time >= config.day_time_start && time <= config.day_time_end ) {
             playlist1.load(Qt.resolvedUrl(config.background_vid_day), 'm3u')
             playlist2.load(Qt.resolvedUrl(config.background_vid_day), 'm3u')
-            image1.source = config.background_img_day
+            //image1.source = config.background_img_day
+            if ( config.backgroud_img_day !== null ) {
+                //image1.source = config.background_img_day
+                var fileType = config.background_img_day.substring(config.background_img_day.lastIndexOf(".") + 1)
+                console.log(fileType)
+                if (fileType === "gif") {
+                        animatedGIF1.source = config.background_img_day
+                } else {
+                        image1.source = config.background_img_day
+                }
+            }
         } else {
             playlist1.load(Qt.resolvedUrl(config.background_vid_night), 'm3u')
             playlist2.load(Qt.resolvedUrl(config.background_vid_night), 'm3u')
-            image1.source = config.background_img_night
+            if ( config.backgroud_img_night !== null ) {
+                var fileType = config.background_img_night.substring(config.background_img_night.lastIndexOf(".") + 1)
+                console.log(fileType)
+                if (fileType === "gif") {
+                        animatedGIF1.source = config.background_img_night
+                } else {
+                        image1.source = config.background_img_night
+                }
+            }
         }
 
         for (var k = 0; k < Math.ceil(Math.random() * 10) ; k++) {
